@@ -20,7 +20,7 @@ def _():
     import polars as pol
     import matplotlib.pylab as plt
     from mofresh import anywidget
-    return PCA, Path, Word2Vec, alt, load_dotenv, mo, os, pd, tqdm
+    return PCA, Path, Word2Vec, alt, load_dotenv, mo, np, os, pd, t, tqdm
 
 
 @app.cell
@@ -170,6 +170,108 @@ def _(alt, by_relation, mo):
 @app.cell
 def _(bar_chart):
     bar_chart
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(text="### Model building")
+    return
+
+
+@app.cell
+def _(df):
+    df.columns
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(text="So, we have the df with 300 dims one for each column, from that we can build the data for our custom NN to push the embeddings a bit")
+    return
+
+
+@app.cell
+def _(triplets_w):
+    # prepare data
+    relation_types = sorted(list(set(row[3] for row in triplets_w)))
+    relation_to_idx = {r:i for i, r in enumerate(relation_types)}
+    num_classes = len(relation_types)
+    return num_classes, relation_to_idx
+
+
+@app.cell
+def _(np, num_classes, pretrained_model, relation_to_idx, t, tqdm, triplets_w):
+    # build embedding and label tensors
+    embedding_list = []
+    label_list = []
+
+    for not_ad, ad, anto, rels in tqdm(triplets_w, desc="generating tensor"):
+        try:
+            vec_negation = pretrained_model.wv[not_ad]
+            vec_adjective = pretrained_model.wv[ad]
+            vec_antonym = pretrained_model.wv[anto]
+        except KeyError:
+            continue 
+        trilet_vec = np.stack([vec_adjective, vec_antonym, vec_negation])
+        embedding_list.append(trilet_vec)
+
+        # one hot label
+        lab = np.zeros(num_classes, dtype=np.float32)
+        lab[relation_to_idx[rels]] = 1.0
+        label_list.append(lab)
+
+    # convert to tensor
+    embedding_tensor = t.tensor(np.stack(embedding_list), dtype=t.float32) # (N, 3, 300)
+    label_tensor = t.tensor(np.stack(label_list), dtype=t.float32) #(N, num_classes)
+
+    print(f'Final tensor shape:', embedding_tensor.shape)
+    print('finale label shape', label_tensor.shape)
+    return (embedding_tensor,)
+
+
+@app.cell
+def _(t):
+    # create a simple model: it should only operate on the negated adj, but remain kind of similar to the initial one 
+    from torch import Tensor
+ 
+    class NN(t.nn.Module):
+        def __init__(self, num_hidden_features):
+            super().__init__()
+            self.layer1 = t.nn.Linear(in_features=300, out_features=num_hidden_features)
+            self.act1 = t.nn.ReLU()
+
+            self.layer2 = t.nn.Linear(num_hidden_features, 300)
+            self.act2 = t.nn.ReLU()
+
+        def forward(self, x:Tensor)->Tensor:
+            assert len(x.shape) == 2, "Only one dim embedding supported"
+            out = self.act2(self.layer2(self.act1(self.layer1(x))))
+            return x + out #residual connection 
+
+        
+    return (Tensor,)
+
+
+@app.cell
+def _(embedding_tensor):
+    x1 = embedding_tensor[:10, 2, ...]
+    return
+
+
+@app.cell
+def _(Tensor, cosine):
+    # define possible training loss:
+    from torch.utils.data import Dataset, DataLoader
+
+    # just create a sample training loop
+
+    def tripletLoss(relation:Tensor, adjective_t, antonym_t, pred):
+        l1 = cosine(adjective_t, pred) - cosine(antonym_t, pred)
+        l2 = cosine(antonym_t, pred) - cosine(adjective_t, pred)
+        loss = l1 * relation[0] + l2 * relation[1] #select one loss depending on the relation 
+
+    
     return
 
 

@@ -227,14 +227,14 @@ def _(np, num_classes, pretrained_model, relation_to_idx, t, tqdm, triplets_w):
 
     print(f'Final tensor shape:', embedding_tensor.shape)
     print('finale label shape', label_tensor.shape)
-    return (embedding_tensor,)
+    return
 
 
 @app.cell
 def _(t):
     # create a simple model: it should only operate on the negated adj, but remain kind of similar to the initial one 
     from torch import Tensor
- 
+
     class NN(t.nn.Module):
         def __init__(self, num_hidden_features):
             super().__init__()
@@ -249,34 +249,39 @@ def _(t):
             out = self.act2(self.layer2(self.act1(self.layer1(x))))
             return x + out #residual connection 
 
-        
+
     return (Tensor,)
-
-
-@app.cell
-def _(embedding_tensor):
-    x1 = embedding_tensor[:10, 2, ...]
-    return
 
 
 @app.cell
 def _(Tensor, cosine):
     # define possible training loss:
     from torch.utils.data import Dataset, DataLoader
+    import torch.nn.functional as F
 
-    # just create a sample training loop
+    def cosine_tensor(a:Tensor, b:Tensor):
+        return F.cosine_similarity(a, b, dim=-1)
 
-    def tripletLoss(relation:Tensor, adjective_t, antonym_t, pred):
-        l1 = cosine(adjective_t, pred) - cosine(antonym_t, pred)
-        l2 = cosine(antonym_t, pred) - cosine(adjective_t, pred)
-        loss = l1 * relation[0] + l2 * relation[1] #select one loss depending on the relation 
+    def triplet_loss(relation:Tensor, adj: Tensor, ant:Tensor, pred:Tensor):
+        sim_adj = cosine(pred, adj)    # similarity to adjective
+        sim_ant = cosine(pred, ant)    # similarity to antonym
 
+        # Encourage sim(pred, adj) > sim(pred, ant) for 'contrary'
+        l1 = F.relu(sim_ant - sim_adj)
+
+        # Encourage sim(pred, ant) > sim(pred, adj) for 'contradictory'
+        l2 = F.relu(sim_adj - sim_ant)
+
+        # One-hot relation: [contrary, contradictory]
+        loss = relation[:, 0] * l1 + relation[:, 1] * l2
+        return loss.mean()
     
     return
 
 
 @app.cell
-def _():
+def _(relation_to_idx):
+    relation_to_idx
     return
 
 

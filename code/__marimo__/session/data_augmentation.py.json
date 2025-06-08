@@ -1,0 +1,659 @@
+{
+  "version": "1",
+  "metadata": {
+    "marimo_version": "0.13.6"
+  },
+  "cells": [
+    {
+      "id": "Hbol",
+      "code_hash": "4f625898ace38f6256b1a68cbd51c6b1",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<span class=\"markdown prose dark:prose-invert\"><h1 id=\"imports-and-description-of-the-notebook\">Imports and Description of the Notebook</h1></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "MJUe",
+      "code_hash": "1d0db38904205bec4d6f6f6a1f6cec3e",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "vblA",
+      "code_hash": "4af517ef739f700432dc8122b81bb1e4",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "bkHC",
+      "code_hash": "1e1843a126f6ba32f8d5be0247d942f1",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<span class=\"markdown prose dark:prose-invert\"><h2 id=\"goal-of-the-notebook\">Goal of the Notebook\ud83e\udd47</h2>\n<ol>\n<li>Use dspy to create synthetic data for the project</li>\n<li>Validate the synthetic data</li>\n<li>Save it in the right format</li>\n</ol>\n<h3 id=\"strategy\">Strategy</h3>\n<span class=\"paragraph\">We are going to use dspy to generate a dataset containing the triplets that we want to use for the negated adjective study inside movie reviews similar to our current dataset. To validate the strategy we are going to train a logistic regression model over the original dataset and run an inference over the new reviews to see if they are similar in the information conveyed to the real data. </span>\n<h3 id=\"possible-additions\">Possible Additions</h3>\n<ol>\n<li>Add some kind of optimization for dspy\n2.</li>\n</ol></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "lEQa",
+      "code_hash": "c3ce67d9977dfffd9b82b22d3061f792",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "PKri",
+      "code_hash": "272a5dd94adbd43dfc6a561730bffeee",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Xref",
+      "code_hash": "eaf580bcdb1e80da9a7c537820a2eb86",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "SFPL",
+      "code_hash": null,
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "BYtC",
+      "code_hash": "0a6f430e26d4c3b081cf918e00c66729",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<span class=\"markdown prose dark:prose-invert\"><h1 id=\"data-generation\">Data Generation</h1></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "RGSE",
+      "code_hash": "9e4f0c6a46e63761881ffadf91c24d54",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Kclp",
+      "code_hash": "c41f86417791b0bb620a9296acb57ca6",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "emfo",
+      "code_hash": "b7eb4be13e5d4c5c3cd5afd6fbb5e63c",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<pre style='font-size: 12px'>array([&#x27;not_present&#x27;, &#x27;not_absent&#x27;, &#x27;not_uniform&#x27;, &#x27;not_simple&#x27;,\n       &#x27;not_single&#x27;, &#x27;not_foreign&#x27;, &#x27;not_native&#x27;, &#x27;not_optional&#x27;,\n       &#x27;not_obligatory&#x27;, &#x27;not_live&#x27;, &#x27;not_separate&#x27;, &#x27;not_religious&#x27;,\n       &#x27;not_native&#x27;, &#x27;not_objective&#x27;, &#x27;not_natural&#x27;, &#x27;not_automatic&#x27;,\n       &#x27;not_private&#x27;, &#x27;not_public&#x27;, &#x27;not_true&#x27;, &#x27;not_false&#x27;, &#x27;not_live&#x27;,\n       &#x27;not_dead&#x27;, &#x27;not_blind&#x27;, &#x27;not_innocent&#x27;, &#x27;not_guilty&#x27;, &#x27;not_other&#x27;,\n       &#x27;not_alive&#x27;, &#x27;not_dead&#x27;], dtype=object)</pre>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Hstk",
+      "code_hash": "ce2b12fff07d4bd611641a939e3bfeb8",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "nWHF",
+      "code_hash": "4f0ccb67beae494417c563cb419c26be",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "iLit",
+      "code_hash": "504c74f9a2c2003f48bfa48c32478c5d",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "ZHCJ",
+      "code_hash": "030a465082d28c6bb7e1602be9ce5f44",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "ROlb",
+      "code_hash": "0fc16153d47de5e037ee57cc45da9a37",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "qnkX",
+      "code_hash": "d393e914db1e3d44d345ea97432dfb2b",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<marimo-ui-element object-id='qnkX-0' random-id='3a99592d-ab7d-9edc-1343-9dde8188ae95'><marimo-table data-initial-value='[]' data-label='null' data-data='&quot;[{&#92;&quot;&#92;&quot;:189,&#92;&quot;Unnamed: 0&#92;&quot;:189,&#92;&quot;adjective1&#92;&quot;:&#92;&quot;hot&#92;&quot;,&#92;&quot;adjective2&#92;&quot;:&#92;&quot;cold&#92;&quot;,&#92;&quot;negation1&#92;&quot;:&#92;&quot;not hot&#92;&quot;,&#92;&quot;antonymy_class&#92;&quot;:&#92;&quot;lexical&#92;&quot;,&#92;&quot;subclass&#92;&quot;:&#92;&quot;contrary_antonyms&#92;&quot;,&#92;&quot;frequency&#92;&quot;:305,&#92;&quot;negation_token&#92;&quot;:&#92;&quot;not_hot&#92;&quot;,&#92;&quot;adjective1_score&#92;&quot;:0.0,&#92;&quot;adjective1_sentiment&#92;&quot;:&#92;&quot;positive&#92;&quot;,&#92;&quot;adjective2_score&#92;&quot;:0.0,&#92;&quot;adjective2_sentiment&#92;&quot;:&#92;&quot;positive&#92;&quot;,&#92;&quot;negation_token_score&#92;&quot;:0.0,&#92;&quot;negation_token_sentiment&#92;&quot;:&#92;&quot;positive&#92;&quot;},{&#92;&quot;&#92;&quot;:190,&#92;&quot;Unnamed: 0&#92;&quot;:190,&#92;&quot;adjective1&#92;&quot;:&#92;&quot;cold&#92;&quot;,&#92;&quot;adjective2&#92;&quot;:&#92;&quot;hot&#92;&quot;,&#92;&quot;negation1&#92;&quot;:&#92;&quot;not cold&#92;&quot;,&#92;&quot;antonymy_class&#92;&quot;:&#92;&quot;lexical&#92;&quot;,&#92;&quot;subclass&#92;&quot;:&#92;&quot;contrary_antonyms&#92;&quot;,&#92;&quot;frequency&#92;&quot;:265,&#92;&quot;negation_token&#92;&quot;:&#92;&quot;not_cold&#92;&quot;,&#92;&quot;adjective1_score&#92;&quot;:0.0,&#92;&quot;adjective1_sentiment&#92;&quot;:&#92;&quot;positive&#92;&quot;,&#92;&quot;adjective2_score&#92;&quot;:0.0,&#92;&quot;adjective2_sentiment&#92;&quot;:&#92;&quot;positive&#92;&quot;,&#92;&quot;negation_token_score&#92;&quot;:0.0,&#92;&quot;negation_token_sentiment&#92;&quot;:&#92;&quot;positive&#92;&quot;},{&#92;&quot;&#92;&quot;:192,&#92;&quot;Unnamed: 0&#92;&quot;:192,&#92;&quot;adjective1&#92;&quot;:&#92;&quot;warm&#92;&quot;,&#92;&quot;adjective2&#92;&quot;:&#92;&quot;cool&#92;&quot;,&#92;&quot;negation1&#92;&quot;:&#92;&quot;not warm&#92;&quot;,&#92;&quot;antonymy_class&#92;&quot;:&#92;&quot;lexical&#92;&quot;,&#92;&quot;subclass&#92;&quot;:&#92;&quot;contrary_antonyms&#92;&quot;,&#92;&quot;frequency&#92;&quot;:106,&#92;&quot;negation_token&#92;&quot;:&#92;&quot;not_warm&#92;&quot;,&#92;&quot;adjective1_score&#92;&quot;:0.2263,&#92;&quot;adjective1_sentiment&#92;&quot;:&#92;&quot;positive&#92;&quot;,&#92;&quot;adjective2_score&#92;&quot;:0.3182,&#92;&quot;adjective2_sentiment&#92;&quot;:&#92;&quot;positive&#92;&quot;,&#92;&quot;negation_token_score&#92;&quot;:0.0,&#92;&quot;negation_token_sentiment&#92;&quot;:&#92;&quot;positive&#92;&quot;},{&#92;&quot;&#92;&quot;:193,&#92;&quot;Unnamed: 0&#92;&quot;:193,&#92;&quot;adjective1&#92;&quot;:&#92;&quot;cool&#92;&quot;,&#92;&quot;adjective2&#92;&quot;:&#92;&quot;warm&#92;&quot;,&#92;&quot;negation1&#92;&quot;:&#92;&quot;not cool&#92;&quot;,&#92;&quot;antonymy_class&#92;&quot;:&#92;&quot;lexical&#92;&quot;,&#92;&quot;subclass&#92;&quot;:&#92;&quot;contrary_antonyms&#92;&quot;,&#92;&quot;frequency&#92;&quot;:217,&#92;&quot;negation_token&#92;&quot;:&#92;&quot;not_cool&#92;&quot;,&#92;&quot;adjective1_score&#92;&quot;:0.3182,&#92;&quot;adjective1_sentiment&#92;&quot;:&#92;&quot;positive&#92;&quot;,&#92;&quot;adjective2_score&#92;&quot;:0.2263,&#92;&quot;adjective2_sentiment&#92;&quot;:&#92;&quot;positive&#92;&quot;,&#92;&quot;negation_token_score&#92;&quot;:0.0,&#92;&quot;negation_token_sentiment&#92;&quot;:&#92;&quot;positive&#92;&quot;},{&#92;&quot;&#92;&quot;:195,&#92;&quot;Unnamed: 0&#92;&quot;:195,&#92;&quot;adjective1&#92;&quot;:&#92;&quot;sharp&#92;&quot;,&#92;&quot;adjective2&#92;&quot;:&#92;&quot;flat&#92;&quot;,&#92;&quot;negation1&#92;&quot;:&#92;&quot;not sharp&#92;&quot;,&#92;&quot;antonymy_class&#92;&quot;:&#92;&quot;lexical&#92;&quot;,&#92;&quot;subclass&#92;&quot;:&#92;&quot;contrary_antonyms&#92;&quot;,&#92;&quot;frequency&#92;&quot;:142,&#92;&quot;negation_token&#92;&quot;:&#92;&quot;not_sharp&#92;&quot;,&#92;&quot;adjective1_score&#92;&quot;:0.0,&#92;&quot;adjective1_sentiment&#92;&quot;:&#92;&quot;positive&#92;&quot;,&#92;&quot;adjective2_score&#92;&quot;:0.0,&#92;&quot;adjective2_sentiment&#92;&quot;:&#92;&quot;positive&#92;&quot;,&#92;&quot;negation_token_score&#92;&quot;:0.0,&#92;&quot;negation_token_sentiment&#92;&quot;:&#92;&quot;positive&#92;&quot;},{&#92;&quot;&#92;&quot;:196,&#92;&quot;Unnamed: 0&#92;&quot;:196,&#92;&quot;adjective1&#92;&quot;:&#92;&quot;flat&#92;&quot;,&#92;&quot;adjective2&#92;&quot;:&#92;&quot;sharp&#92;&quot;,&#92;&quot;negation1&#92;&quot;:&#92;&quot;not flat&#92;&quot;,&#92;&quot;antonymy_class&#92;&quot;:&#92;&quot;lexical&#92;&quot;,&#92;&quot;subclass&#92;&quot;:&#92;&quot;contrary_antonyms&#92;&quot;,&#92;&quot;frequency&#92;&quot;:225,&#92;&quot;negation_token&#92;&quot;:&#92;&quot;not_flat&#92;&quot;,&#92;&quot;adjective1_score&#92;&quot;:0.0,&#92;&quot;adjective1_sentiment&#92;&quot;:&#92;&quot;positive&#92;&quot;,&#92;&quot;adjective2_score&#92;&quot;:0.0,&#92;&quot;adjective2_sentiment&#92;&quot;:&#92;&quot;positive&#92;&quot;,&#92;&quot;negation_token_score&#92;&quot;:0.0,&#92;&quot;negation_token_sentiment&#92;&quot;:&#92;&quot;positive&#92;&quot;},{&#92;&quot;&#92;&quot;:202,&#92;&quot;Unnamed: 0&#92;&quot;:202,&#92;&quot;adjective1&#92;&quot;:&#92;&quot;long&#92;&quot;,&#92;&quot;adjective2&#92;&quot;:&#92;&quot;short&#92;&quot;,&#92;&quot;negation1&#92;&quot;:&#92;&quot;not long&#92;&quot;,&#92;&quot;antonymy_class&#92;&quot;:&#92;&quot;lexical&#92;&quot;,&#92;&quot;subclass&#92;&quot;:&#92;&quot;contrary_antonyms&#92;&quot;,&#92;&quot;frequency&#92;&quot;:4211,&#92;&quot;negation_token&#92;&quot;:&#92;&quot;not_long&#92;&quot;,&#92;&quot;adjective1_score&#92;&quot;:0.0,&#92;&quot;adjective1_sentiment&#92;&quot;:&#92;&quot;positive&#92;&quot;,&#92;&quot;adjective2_score&#92;&quot;:0.0,&#92;&quot;adjective2_sentiment&#92;&quot;:&#92;&quot;positive&#92;&quot;,&#92;&quot;negation_token_score&#92;&quot;:0.0,&#92;&quot;negation_token_sentiment&#92;&quot;:&#92;&quot;negative&#92;&quot;},{&#92;&quot;&#92;&quot;:203,&#92;&quot;Unnamed: 0&#92;&quot;:203,&#92;&quot;adjective1&#92;&quot;:&#92;&quot;short&#92;&quot;,&#92;&quot;adjective2&#92;&quot;:&#92;&quot;long&#92;&quot;,&#92;&quot;negation1&#92;&quot;:&#92;&quot;not short&#92;&quot;,&#92;&quot;antonymy_class&#92;&quot;:&#92;&quot;lexical&#92;&quot;,&#92;&quot;subclass&#92;&quot;:&#92;&quot;contrary_antonyms&#92;&quot;,&#92;&quot;frequency&#92;&quot;:664,&#92;&quot;negation_token&#92;&quot;:&#92;&quot;not_short&#92;&quot;,&#92;&quot;adjective1_score&#92;&quot;:0.0,&#92;&quot;adjective1_sentiment&#92;&quot;:&#92;&quot;positive&#92;&quot;,&#92;&quot;adjective2_score&#92;&quot;:0.0,&#92;&quot;adjective2_sentiment&#92;&quot;:&#92;&quot;positive&#92;&quot;,&#92;&quot;negation_token_score&#92;&quot;:0.0,&#92;&quot;negation_token_sentiment&#92;&quot;:&#92;&quot;positive&#92;&quot;},{&#92;&quot;&#92;&quot;:210,&#92;&quot;Unnamed: 0&#92;&quot;:210,&#92;&quot;adjective1&#92;&quot;:&#92;&quot;full&#92;&quot;,&#92;&quot;adjective2&#92;&quot;:&#92;&quot;empty&#92;&quot;,&#92;&quot;negation1&#92;&quot;:&#92;&quot;not full&#92;&quot;,&#92;&quot;antonymy_class&#92;&quot;:&#92;&quot;lexical&#92;&quot;,&#92;&quot;subclass&#92;&quot;:&#92;&quot;contrary_antonyms&#92;&quot;,&#92;&quot;frequency&#92;&quot;:943,&#92;&quot;negation_token&#92;&quot;:&#92;&quot;not_full&#92;&quot;,&#92;&quot;adjective1_score&#92;&quot;:0.0,&#92;&quot;adjective1_sentiment&#92;&quot;:&#92;&quot;positive&#92;&quot;,&#92;&quot;adjective2_score&#92;&quot;:-0.2023,&#92;&quot;adjective2_sentiment&#92;&quot;:&#92;&quot;negative&#92;&quot;,&#92;&quot;negation_token_score&#92;&quot;:0.0,&#92;&quot;negation_token_sentiment&#92;&quot;:&#92;&quot;positive&#92;&quot;},{&#92;&quot;&#92;&quot;:211,&#92;&quot;Unnamed: 0&#92;&quot;:211,&#92;&quot;adjective1&#92;&quot;:&#92;&quot;empty&#92;&quot;,&#92;&quot;adjective2&#92;&quot;:&#92;&quot;full&#92;&quot;,&#92;&quot;negation1&#92;&quot;:&#92;&quot;not empty&#92;&quot;,&#92;&quot;antonymy_class&#92;&quot;:&#92;&quot;lexical&#92;&quot;,&#92;&quot;subclass&#92;&quot;:&#92;&quot;contrary_antonyms&#92;&quot;,&#92;&quot;frequency&#92;&quot;:419,&#92;&quot;negation_token&#92;&quot;:&#92;&quot;not_empty&#92;&quot;,&#92;&quot;adjective1_score&#92;&quot;:-0.2023,&#92;&quot;adjective1_sentiment&#92;&quot;:&#92;&quot;negative&#92;&quot;,&#92;&quot;adjective2_score&#92;&quot;:0.0,&#92;&quot;adjective2_sentiment&#92;&quot;:&#92;&quot;positive&#92;&quot;,&#92;&quot;negation_token_score&#92;&quot;:0.0,&#92;&quot;negation_token_sentiment&#92;&quot;:&#92;&quot;negative&#92;&quot;}]&quot;' data-total-rows='68' data-total-columns='14' data-banner-text='&quot;&quot;' data-pagination='true' data-page-size='10' data-field-types='[[&quot;Unnamed: 0&quot;, [&quot;integer&quot;, &quot;int64&quot;]], [&quot;adjective1&quot;, [&quot;string&quot;, &quot;object&quot;]], [&quot;adjective2&quot;, [&quot;string&quot;, &quot;object&quot;]], [&quot;negation1&quot;, [&quot;string&quot;, &quot;object&quot;]], [&quot;antonymy_class&quot;, [&quot;string&quot;, &quot;object&quot;]], [&quot;subclass&quot;, [&quot;string&quot;, &quot;object&quot;]], [&quot;frequency&quot;, [&quot;integer&quot;, &quot;int64&quot;]], [&quot;negation_token&quot;, [&quot;string&quot;, &quot;object&quot;]], [&quot;adjective1_score&quot;, [&quot;number&quot;, &quot;float64&quot;]], [&quot;adjective1_sentiment&quot;, [&quot;string&quot;, &quot;object&quot;]], [&quot;adjective2_score&quot;, [&quot;number&quot;, &quot;float64&quot;]], [&quot;adjective2_sentiment&quot;, [&quot;string&quot;, &quot;object&quot;]], [&quot;negation_token_score&quot;, [&quot;number&quot;, &quot;float64&quot;]], [&quot;negation_token_sentiment&quot;, [&quot;string&quot;, &quot;object&quot;]]]' data-show-filters='true' data-show-download='true' data-show-column-summaries='true' data-row-headers='[&quot;&quot;]' data-has-stable-row-id='false' data-lazy='false' data-preload='false'></marimo-table></marimo-ui-element>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "TqIu",
+      "code_hash": "9b8c3f242c6e873794b0f171c00e0233",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Vxnm",
+      "code_hash": "8762c4b0e61ea9356fdd7aa0e83ceef2",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "DnEU",
+      "code_hash": "2ca44b9fc412362bef7889b471d24158",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "ulZA",
+      "code_hash": "18e184713e016529d03892518c857be9",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "ecfG",
+      "code_hash": "f4c31d2595fe5e2cbfe9602ed5657968",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Pvdt",
+      "code_hash": "4ecac8eee496de018cdc37384aa59bf1",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ZBYS",
+      "code_hash": "b7e0763d8417dd92639d559180c6866f",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "aLJB",
+      "code_hash": "37d231589766b726df6687f08ce07e65",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<span class=\"markdown prose dark:prose-invert\"><h2 id=\"results-evaluation\">Results Evaluation</h2></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "BuhY",
+      "code_hash": "d9950d96044eded25d3538d6bf9de9f7",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<marimo-ui-element object-id='BuhY-0' random-id='2e9147e4-b96c-4a7a-2107-a872cf1cda8a'><marimo-button data-initial-value='0' data-label='&quot;&lt;span class=&#92;&quot;markdown prose dark:prose-invert&#92;&quot;&gt;&lt;span class=&#92;&quot;paragraph&#92;&quot;&gt;dspy run on/off&lt;/span&gt;&lt;/span&gt;&quot;' data-kind='&quot;neutral&quot;' data-disabled='false' data-full-width='false'></marimo-button></marimo-ui-element>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "peMc",
+      "code_hash": "6746d3034c543d7f5e6fbaa3b2ee8ae2",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "zUrj",
+      "code_hash": "0ff3457faf6aef05152184792fceceee",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<span class=\"markdown prose dark:prose-invert\"><h3 id=\"qualitative-evaluaiton\">Qualitative Evaluaiton</h3>\n<span class=\"paragraph\">We are going to review and compute some statistics to compare the real dataset and the synthetic one</span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "KNYx",
+      "code_hash": "9e87653beaa58a2aba9031246fa139bb",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "ZgpU",
+      "code_hash": "d022c65194e65c566b70ef1a18f8b2f7",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "hvZF",
+      "code_hash": "6befcabb2ac77452befb26e0fb3367e0",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<pre style='font-size: 12px'>PosixPath(&#x27;/Users/thomasbush/Documents/Vault/CIMEC/LSC/seminar_paper/code/synthetic_data&#x27;)</pre>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "RqsS",
+      "code_hash": "399a6cd37c9497f6ac154d4c8f616f0a",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<pre style='font-size: 12px'>&#x27;/Users/thomasbush/Documents/Vault/CIMEC/LSC/seminar_paper/code&#x27;</pre>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "pmVC",
+      "code_hash": "cb5a9faea4be5ed149fb14a968f6af2d",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": [
+        {
+          "type": "stream",
+          "name": "stderr",
+          "text": "\rextracting pos reviews:   0%|                                                                                | 0/12500 [00:00<?, ?it/s]"
+        },
+        {
+          "type": "stream",
+          "name": "stderr",
+          "text": "\rextracting pos reviews:   5%|\u2588\u2588\u2588\u258e                                                                | 618/12500 [00:00<00:01, 6169.39it/s]"
+        },
+        {
+          "type": "stream",
+          "name": "stderr",
+          "text": "\rextracting pos reviews:  12%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258a                                                           | 1451/12500 [00:00<00:01, 7437.17it/s]"
+        },
+        {
+          "type": "stream",
+          "name": "stderr",
+          "text": "\rextracting pos reviews:  20%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258d                                                     | 2511/12500 [00:00<00:01, 8873.70it/s]"
+        },
+        {
+          "type": "stream",
+          "name": "stderr",
+          "text": "\rextracting pos reviews:  32%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588                                             | 3993/12500 [00:00<00:00, 11218.37it/s]"
+        },
+        {
+          "type": "stream",
+          "name": "stderr",
+          "text": "\rextracting pos reviews:  47%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258b                                   | 5818/12500 [00:00<00:00, 13746.74it/s]"
+        },
+        {
+          "type": "stream",
+          "name": "stderr",
+          "text": "\rextracting pos reviews:  62%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258c                         | 7689/12500 [00:00<00:00, 15432.26it/s]"
+        },
+        {
+          "type": "stream",
+          "name": "stderr",
+          "text": "\rextracting pos reviews:  79%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588              | 9865/12500 [00:00<00:00, 17498.12it/s]"
+        },
+        {
+          "type": "stream",
+          "name": "stderr",
+          "text": "\rextracting pos reviews:  97%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258e | 12179/12500 [00:00<00:00, 19292.90it/s]"
+        },
+        {
+          "type": "stream",
+          "name": "stderr",
+          "text": "\rextracting pos reviews: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 12500/12500 [00:00<00:00, 15350.99it/s]\n"
+        },
+        {
+          "type": "stream",
+          "name": "stderr",
+          "text": "\rextracting neg reviews:   0%|                                                                                | 0/12500 [00:00<?, ?it/s]"
+        },
+        {
+          "type": "stream",
+          "name": "stderr",
+          "text": "\rextracting neg reviews:   5%|\u2588\u2588\u2588\u258b                                                                | 678/12500 [00:00<00:01, 6773.09it/s]"
+        },
+        {
+          "type": "stream",
+          "name": "stderr",
+          "text": "\rextracting neg reviews:  13%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258c                                                          | 1600/12500 [00:00<00:01, 8209.42it/s]"
+        },
+        {
+          "type": "stream",
+          "name": "stderr",
+          "text": "\rextracting neg reviews:  22%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588                                                    | 2811/12500 [00:00<00:00, 9987.85it/s]"
+        },
+        {
+          "type": "stream",
+          "name": "stderr",
+          "text": "\rextracting neg reviews:  38%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588                                         | 4748/12500 [00:00<00:00, 13689.03it/s]"
+        },
+        {
+          "type": "stream",
+          "name": "stderr",
+          "text": "\rextracting neg reviews:  53%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258a                               | 6593/12500 [00:00<00:00, 15401.54it/s]"
+        },
+        {
+          "type": "stream",
+          "name": "stderr",
+          "text": "\rextracting neg reviews:  65%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2589                       | 8134/12500 [00:00<00:00, 15379.75it/s]"
+        },
+        {
+          "type": "stream",
+          "name": "stderr",
+          "text": "\rextracting neg reviews:  83%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258f          | 10417/12500 [00:00<00:00, 17811.83it/s]"
+        },
+        {
+          "type": "stream",
+          "name": "stderr",
+          "text": "\rextracting neg reviews:  98%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2589 | 12303/12500 [00:00<00:00, 18113.58it/s]"
+        },
+        {
+          "type": "stream",
+          "name": "stderr",
+          "text": "\rextracting neg reviews: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 12500/12500 [00:00<00:00, 15233.38it/s]\n\rextracting pos reviews:   0%|                                                                                   | 0/75 [00:00<?, ?it/s]\rextracting pos reviews: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 75/75 [00:00<00:00, 23811.43it/s]\n\rextracting neg reviews:   0%|                                                                                   | 0/34 [00:00<?, ?it/s]\rextracting neg reviews: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 34/34 [00:00<00:00, 24511.23it/s]\n"
+        }
+      ]
+    },
+    {
+      "id": "yuIT",
+      "code_hash": "d2dfbd23a6ad290ff008ca1b91d42f91",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<marimo-ui-element object-id='yuIT-0' random-id='226f6957-4267-39a2-dda3-ac272523b077'><marimo-table data-initial-value='[]' data-label='null' data-data='&quot;[{&#92;&quot;filename&#92;&quot;:&#92;&quot;4715_9.txt&#92;&quot;,&#92;&quot;review&#92;&quot;:&#92;&quot;for a movie that gets no respect there sure are a lot of memorable quotes listed for this gem . imagine a movie where joe piscopo is actually funny ! maureen stapleton is a scene stealer . the moroni character is an absolute scream . watch for alan `` the skipper `` hale jr. as a police sgt .&#92;&quot;,&#92;&quot;label&#92;&quot;:&#92;&quot;pos&#92;&quot;},{&#92;&quot;filename&#92;&quot;:&#92;&quot;12390_8.txt&#92;&quot;,&#92;&quot;review&#92;&quot;:&#92;&quot;bizarre horror movie filled with famous faces but stolen by cristina raines ( later of tv &#x27;s `` flamingo road `` ) as a pretty but somewhat unstable model with a gummy smile who is slated to pay for her attempted suicides by guarding the gateway to hell ! the scenes with raines modeling are very well captured , the mood music is perfect , deborah raffin is charming as cristina &#x27;s pal , but when raines moves into a creepy brooklyn heights brownstone ( inhabited by a blind priest on the top floor ) , things really start cooking . the neighbors , including a fantastically wicked burgess meredith and kinky couple sylvia miles &amp; beverly d&#x27;angelo , are a diabolical lot , and eli wallach is great fun as a wily police detective . the movie is nearly a cross-pollination of `` rosemary &#x27;s baby `` and `` the exorcist `` -- but what a combination ! based on the best-seller by jeffrey konvitz , `` the sentinel `` is entertainingly spooky , full of shocks brought off well by director michael winner , who mounts a thoughtfully downbeat ending with skill . * * * 1/2 from * * * *&#92;&quot;,&#92;&quot;label&#92;&quot;:&#92;&quot;pos&#92;&quot;},{&#92;&quot;filename&#92;&quot;:&#92;&quot;8329_7.txt&#92;&quot;,&#92;&quot;review&#92;&quot;:&#92;&quot;a solid , if unremarkable film . matthau , as einstein , was wonderful . my favorite part , and the only thing that would make me go out of my way to see this again , was the wonderful scene with the physicists playing badmitton , i loved the sweaters and the conversation while they waited for robbins to retrieve the birdie .&#92;&quot;,&#92;&quot;label&#92;&quot;:&#92;&quot;pos&#92;&quot;},{&#92;&quot;filename&#92;&quot;:&#92;&quot;9063_8.txt&#92;&quot;,&#92;&quot;review&#92;&quot;:&#92;&quot;it &#x27;s a strange feeling to sit alone in a theater occupied by parents and their rollicking kids . i felt like instead of a movie ticket , i should have been given a nambla membership . &lt; br / &gt; &lt; br / &gt; based upon thomas rockwell &#x27;s respected book , how to eat fried worms starts like any children &#x27;s story : moving to a new town . the new kid , fifth grader billy forrester was once popular , but has to start anew . making friends is never easy , especially when the only prospect is poindexter adam . or erica , who at 4 1/2 feet , is a giant . &lt; br / &gt; &lt; br / &gt; further complicating things is joe the bully . his freckled face and sleeveless shirts are daunting . he antagonizes kids with the death ring : a crackerjack ring that is rumored to kill you if you &#x27;re punched with it . but not immediately . no , the death ring unleashes a poison that kills you in the eight grade . &lt; br / &gt; &lt; br / &gt; joe and his axis of evil welcome billy by smuggling a handful of slimy worms into his thermos . once discovered , billy plays it cool , swearing that he eats worms all the time . then he throws them at joe &#x27;s face . ewww ! to win them over , billy reluctantly bets that he can eat 10 worms . fried , boiled , marinated in hot sauce , squashed and spread on a peanut butter sandwich . each meal is dubbed an exotic name like the `` radioactive slime delight , `` in which the kids finally live out their dream of microwaving a living organism . &lt; br / &gt; &lt; br / &gt; if you &#x27;ve ever met me , you &#x27;ll know that i have an uncontrollably hearty laugh . i felt like a creep erupting at a toddler whining that his `` dilly dick `` hurts . but fried worms is wonderfully disgusting . like a g-rated farrelly brothers film , it is both vomitous and delightful . &lt; br / &gt; &lt; br / &gt; writer/director bob dolman is also a savvy storyteller . to raise the stakes the worms must be consumed by 7 pm . in addition billy holds a dark secret : he has an ultra-sensitive stomach . &lt; br / &gt; &lt; br / &gt; dolman also has a keen sense of perspective . with such accuracy , he draws on children &#x27;s insecurities and tendency to exaggerate mundane dilemmas . &lt; br / &gt; &lt; br / &gt; if you were to hyperbolize this movie the way kids do their quandaries , you will see that it is essentially about war . freedom-fighter and freedom-hater use pubescent boys as pawns in proxy wars , only to learn a valuable lesson in unity . international leaders can learn a thing or two about global peacekeeping from fried worms . &lt; br / &gt; &lt; br / &gt; at the end of the film , i was comforted when two chaperoning mothers behind me , looked at each other with befuddlement and agreed , `` that was a great movie . `` great , now i wo n&#x27;t have to register myself in any lawful databases .&#92;&quot;,&#92;&quot;label&#92;&quot;:&#92;&quot;pos&#92;&quot;},{&#92;&quot;filename&#92;&quot;:&#92;&quot;3092_10.txt&#92;&quot;,&#92;&quot;review&#92;&quot;:&#92;&quot;you probably all already know this by now , but 5 additional episodes never aired can be viewed on abc.com i &#x27;ve watched a lot of television over the years and this is possibly my favorite show , ever . it &#x27;s a crime that this beautifully written and acted show was canceled . the actors that played laura , whit , carlos , mae , damian , anya and omg , steven caseman - are all incredible and so natural in those roles . even the kids are great . wonderful show . so sad that it &#x27;s gone . of course i wonder about the reasons it was canceled . there is no way i &#x27;ll let myself believe that ms. moynahan &#x27;s pregnancy had anything to do with it . it was in the perfect time slot in this market . i &#x27;ve watched all the episodes again on abc.com - i hope they all come out on dvd some day . thanks for reading .&#92;&quot;,&#92;&quot;label&#92;&quot;:&#92;&quot;pos&#92;&quot;}]&quot;' data-total-rows='5' data-total-columns='3' data-banner-text='&quot;&quot;' data-pagination='true' data-page-size='10' data-field-types='[[&quot;filename&quot;, [&quot;string&quot;, &quot;object&quot;]], [&quot;review&quot;, [&quot;string&quot;, &quot;object&quot;]], [&quot;label&quot;, [&quot;string&quot;, &quot;object&quot;]]]' data-show-filters='true' data-show-download='true' data-show-column-summaries='false' data-row-headers='[]' data-has-stable-row-id='false' data-lazy='false' data-preload='false'></marimo-table></marimo-ui-element>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "vPPr",
+      "code_hash": "08fe1d66dc951afd8ec75608eede1cda",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "uvjE",
+      "code_hash": "7036a21d92f0b249631d9fce0d60bc3f",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": [
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "\n Example Reviews\n\n--- POS ---\n9963_10.txt: i saw this movie when i was a little girl . and i have enjoyed it every time . sure the graphics are a little cheesy , compared to now , but back in the 70 's it was great . i saw it in the original s...\n\n5806_7.txt: if you see this movie , you know you will see an extense video-clip of popular music . but you will find more . incredible fx , great music and a nice time to enjoy with your kids . if you compare thi...\n\n9836_9.txt: although it 's not as creepy as it 's cult classic predecessor ( zombi 2 ) i actually like this one better . this is because of it 's faster pace , better settings , and cool 80 's soundtrack . it 's ...\n\n\n--- NEG ---\n10695_1.txt: ... ok i have read about this film somewhere in the internet , and many criticized on how bad and sucks this film was . and i could n't have been more agree about it . then after that i saw this film ...\n\n10244_2.txt: i work as a hotel concierge in washington dc and take my word , there was nothing remotely accurate about the character played by michael j. fox- # 1 we simply do not walk around with our pockets burs...\n\n7707_4.txt: with a title like `` attack of the killer tomatoes ! `` , anyone going into this thing would be expecting either a ) a bad science fiction movie or b ) a comedy making fun of bad science fiction movie...\n\n\n Example Reviews\n\n--- POS ---\nreview_19.txt: \"False\" is a captivating film that challenges perceptions and keeps you on the edge of your seat with its intriguing plot twists and engaging characters....\n\nreview_4.txt: This movie is a single masterpiece that captivates the audience with its brilliant storytelling and exceptional performances....\n\nreview_78.txt: This film offers a not_blind perspective on its themes, providing viewers with a refreshing and insightful experience that keeps you engaged from start to finish....\n\n\n--- NEG ---\nreview_17.txt: The film was disappointingly public in its execution, lacking the depth and nuance that could have made it truly engaging....\n\nreview_14.txt: The film's attempt to portray a natural setting fell flat, resulting in a disjointed and unconvincing experience that left much to be desired....\n\nreview_50.txt: The movie was a sighted disappointment, failing to deliver on its promising premise and leaving viewers feeling unfulfilled....\n\n"
+        }
+      ]
+    },
+    {
+      "id": "pcIW",
+      "code_hash": "6e696d8598189dde553b320d75b93b87",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": [
+        {
+          "type": "stream",
+          "name": "stdout",
+          "text": "\n\ud83d\udcca Real Reviews Stats:\nAverage length: 283.92 words\nShortest: 11 words\nLongest: 2818 words\n\n\ud83d\udcca Synthetic Reviews Stats:\nAverage length: 73.12 words\nShortest: 17 words\nLongest: 111 words\n"
+        }
+      ]
+    },
+    {
+      "id": "wSng",
+      "code_hash": "c6e90d0308fdb700abced925a3e799d3",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<pre style='font-size: 12px'>82</pre>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "gXbn",
+      "code_hash": null,
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "SSBx",
+      "code_hash": "0225e5470d4e6788c33296b68f309991",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<span class=\"markdown prose dark:prose-invert\"><h3 id=\"sentiment-analysis\">Sentiment Analysis</h3></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "NfzH",
+      "code_hash": "9a626d16ac279d0a5694c63e7559f3d9",
+      "outputs": [
+        {
+          "type": "error",
+          "ename": "exception",
+          "evalue": "numpy.dtype size changed, may indicate binary incompatibility. Expected 96 from C header, got 88 from PyObject",
+          "traceback": []
+        }
+      ],
+      "console": [
+        {
+          "type": "stream",
+          "name": "stderr",
+          "text": "<span class=\"codehilite\"><div class=\"highlight\"><pre><span></span><span class=\"gt\">Traceback (most recent call last):</span>\n  File <span class=\"nb\">&quot;/Users/thomasbush/miniconda3/envs/ML/lib/python3.11/site-packages/marimo/_runtime/executor.py&quot;</span>, line <span class=\"m\">122</span>, in <span class=\"n\">execute_cell</span>\n<span class=\"w\">    </span><span class=\"n\">exec</span><span class=\"p\">(</span><span class=\"n\">cell</span><span class=\"o\">.</span><span class=\"n\">body</span><span class=\"p\">,</span> <span class=\"n\">glbls</span><span class=\"p\">)</span>\n  File <span class=\"nb\">&quot;/var/folders/0m/4nz5dl3956v2_pcbzw2lwtwr0000gn/T/marimo_46728/__marimo__cell_NfzH_.py&quot;</span>, line <span class=\"m\">1</span>, in <span class=\"n\">&lt;module&gt;</span>\n<span class=\"w\">    </span><span class=\"kn\">from</span> <span class=\"nn\">sklearn.feature_extraction.text</span> <span class=\"kn\">import</span> <span class=\"n\">TfidfVectorizer</span>\n  File <span class=\"nb\">&quot;/Users/thomasbush/miniconda3/envs/ML/lib/python3.11/site-packages/sklearn/__init__.py&quot;</span>, line <span class=\"m\">73</span>, in <span class=\"n\">&lt;module&gt;</span>\n<span class=\"w\">    </span><span class=\"kn\">from</span> <span class=\"nn\">.base</span> <span class=\"kn\">import</span> <span class=\"n\">clone</span>  <span class=\"c1\"># noqa: E402</span>\n<span class=\"w\">    </span><span class=\"pm\">^^^^^^^^^^^^^^^^^^^^^^^</span>\n  File <span class=\"nb\">&quot;/Users/thomasbush/miniconda3/envs/ML/lib/python3.11/site-packages/sklearn/base.py&quot;</span>, line <span class=\"m\">19</span>, in <span class=\"n\">&lt;module&gt;</span>\n<span class=\"w\">    </span><span class=\"kn\">from</span> <span class=\"nn\">.utils._metadata_requests</span> <span class=\"kn\">import</span> <span class=\"n\">_MetadataRequester</span><span class=\"p\">,</span> <span class=\"n\">_routing_enabled</span>\n  File <span class=\"nb\">&quot;/Users/thomasbush/miniconda3/envs/ML/lib/python3.11/site-packages/sklearn/utils/__init__.py&quot;</span>, line <span class=\"m\">37</span>, in <span class=\"n\">&lt;module&gt;</span>\n<span class=\"w\">    </span><span class=\"kn\">from</span> <span class=\"nn\">.murmurhash</span> <span class=\"kn\">import</span> <span class=\"n\">murmurhash3_32</span>\n  File <span class=\"nb\">&quot;sklearn/utils/murmurhash.pyx&quot;</span>, line <span class=\"m\">1</span>, in <span class=\"n\">init sklearn.utils.murmurhash</span>\n<span class=\"gr\">ValueError</span>: <span class=\"n\">numpy.dtype size changed, may indicate binary incompatibility. Expected 96 from C header, got 88 from PyObject</span>\n</pre></div>\n</span>"
+        }
+      ]
+    }
+  ]
+}

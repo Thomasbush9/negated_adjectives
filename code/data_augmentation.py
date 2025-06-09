@@ -161,26 +161,23 @@ def _(adj_csv):
 
 
 @app.cell
-def _(adj_csv):
-    adj_type = "contradictory_antonyms"
-    filtered = adj_csv[adj_csv['subclass'] == adj_type]
-    return (filtered,)
-
-
-@app.cell
 def _(dspy):
     class MovieReviewSignature(dspy.Signature):
         adjective = dspy.InputField(desc="An adjective to include in the review")
         sentiment = dspy.InputField(desc="positive or negative")
-        review = dspy.OutputField(desc="A detailed movie review of at least 4–6 sentences that uses the adjective and matches the sentiment.")
+        review = dspy.OutputField(desc="A detailed movie review of at least 6-8 sentences that uses the adjective and matches the sentiment.")
     return (MovieReviewSignature,)
 
 
 @app.cell
-def _(MovieReviewSignature, dspy, os, output_dir):
-    os.makedirs(output_dir / "reviews/pos", exist_ok=True)
-    os.makedirs(output_dir / "reviews/neg", exist_ok=True)
+def _(MovieReviewSignature, dspy, output_dir):
     rev_dir = output_dir / "reviews"
+    pos_dir = rev_dir / "pos"
+    neg_dir = rev_dir / "neg"
+
+    # Make sure directories exist
+    pos_dir.mkdir(parents=True, exist_ok=True)
+    neg_dir.mkdir(parents=True, exist_ok=True)
 
     # DSPy prediction setup
     predict = dspy.Predict(MovieReviewSignature)
@@ -188,15 +185,16 @@ def _(MovieReviewSignature, dspy, os, output_dir):
     def generate_and_save_review(adjective: str, sentiment: str, file_id: int):
         result = predict(adjective=adjective, sentiment=sentiment)
         review_text = result.review.strip()
-
+    
         folder = "pos" if sentiment == "positive" else "neg"
-        file_path = rev_dir / folder / f'review_{file_id}.txt'
+        dir_path = rev_dir / folder
+        file_path = dir_path / f'review_{file_id}.txt'
 
         with open(file_path, "w") as f:
             f.write(review_text)
 
         return review_text
-    return (generate_and_save_review,)
+    return generate_and_save_review, neg_dir, pos_dir
 
 
 @app.cell
@@ -205,36 +203,48 @@ def _():
     return (tqdm,)
 
 
-@app.cell
-def _(mo):
+@app.cell(hide_code=True)
+def _(adj_csv, mo):
     button = mo.ui.button(
         value=False, 
         on_click=lambda value: True if not value else False, label='dspy run on/off'
     )
-    button
-    return (button,)
+    adj_type = mo.ui.radio(adj_csv['subclass'].unique())
+    text = mo.ui.slider(start=1, stop=10, step=1, value=1, show_value=True, label='Number of loops')
+
+    mo.hstack([adj_type, mo.vstack([button, text], align='stretch')], align='center')
+    return adj_type, button, text
+
+
+@app.cell(hide_code=True)
+def _(adj_csv, adj_type, text):
+    filtered = adj_csv[adj_csv['subclass'] == adj_type.value]
+    tot_loops = text.value * len(filtered) * 3
+    print(f"You are about to create {tot_loops} reviews, are you sure to start it?")
+    return (filtered,)
 
 
 @app.cell
-def _(button, filtered, generate_and_save_review, tqdm):
-    file_id = 0
+def _(
+    button,
+    filtered,
+    generate_and_save_review,
+    neg_dir,
+    pos_dir,
+    text,
+    tqdm,
+):
+    existing_pos = len(list(pos_dir.glob("review_*.txt")))
+    existing_neg = len(list(neg_dir.glob("review_*.txt")))
+    file_id = existing_pos + existing_neg
     if button.value:
-        for column in ['adjective1', 'adjective2', 'negation_token']:
-            for i, row in tqdm(filtered.iterrows(), total=len(filtered)):
-                adj = row[column]
-                sentiment = row[f"{column}_sentiment"]
-                generate_and_save_review(str(adj), sentiment, file_id)
-                file_id += 1
-    return
-
-
-@app.cell
-def _():
-    return
-
-
-@app.cell
-def _():
+        for n in range(0, text.value):
+            for column in ['adjective1', 'adjective2', 'negation_token']:
+                for i, row in tqdm(filtered.iterrows(), total=len(filtered)):
+                    adj = row[column]
+                    sentiment = row[f"{column}_sentiment"]
+                    generate_and_save_review(str(adj), sentiment, file_id)
+                    file_id += 1
     return
 
 

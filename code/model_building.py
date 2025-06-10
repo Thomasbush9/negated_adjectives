@@ -1,7 +1,13 @@
 import marimo
 
 __generated_with = "0.13.6"
-app = marimo.App()
+app = marimo.App(width="columns")
+
+
+@app.cell(column=0)
+def _(mo):
+    mo.md(r"""# Imports and Data Exploration""")
+    return
 
 
 @app.cell
@@ -173,15 +179,20 @@ def _(bar_chart):
     return
 
 
-@app.cell
+@app.cell(column=1)
 def _(mo):
-    mo.md(text="### Model building")
+    mo.md(r"""# Model Building""")
     return
 
 
 @app.cell
-def _(df):
-    df.columns
+def _():
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(text="### Model building")
     return
 
 
@@ -227,7 +238,7 @@ def _(np, num_classes, pretrained_model, relation_to_idx, t, tqdm, triplets_w):
 
     print(f'Final tensor shape:', embedding_tensor.shape)
     print('finale label shape', label_tensor.shape)
-    return
+    return embedding_tensor, label_tensor
 
 
 @app.cell
@@ -250,11 +261,11 @@ def _(t):
             return x + out #residual connection 
 
 
-    return (Tensor,)
+    return NN, Tensor
 
 
 @app.cell
-def _(Tensor, cosine):
+def _(Tensor):
     # define possible training loss:
     from torch.utils.data import Dataset, DataLoader
     import torch.nn.functional as F
@@ -262,26 +273,88 @@ def _(Tensor, cosine):
     def cosine_tensor(a:Tensor, b:Tensor):
         return F.cosine_similarity(a, b, dim=-1)
 
-    def triplet_loss(relation:Tensor, adj: Tensor, ant:Tensor, pred:Tensor):
-        sim_adj = cosine(pred, adj)    # similarity to adjective
-        sim_ant = cosine(pred, ant)    # similarity to antonym
+    def triplet_loss(relation: Tensor, adj: Tensor, ant: Tensor, pred: Tensor, margin=0.1) -> Tensor:
+        sim_adj = F.cosine_similarity(pred, adj, dim=-1)
+        sim_ant = F.cosine_similarity(pred, ant, dim=-1)
 
-        # Encourage sim(pred, adj) > sim(pred, ant) for 'contrary'
-        l1 = F.relu(sim_ant - sim_adj)
+        # Margin-based version
+        l1 = F.relu(sim_ant - sim_adj + margin)  # for 'contrary'
+        l2 = F.relu(sim_adj - sim_ant + margin)  # for 'contradictory'
 
-        # Encourage sim(pred, ant) > sim(pred, adj) for 'contradictory'
-        l2 = F.relu(sim_adj - sim_ant)
-
-        # One-hot relation: [contrary, contradictory]
         loss = relation[:, 0] * l1 + relation[:, 1] * l2
         return loss.mean()
-    
-    return
+
+    return DataLoader, Dataset, triplet_loss
 
 
 @app.cell
 def _(relation_to_idx):
     relation_to_idx
+    return
+
+
+@app.cell
+def _(label_tensor):
+    maskContrary = label_tensor[:, 1] == 1
+    maskContradictory = label_tensor[:, 2] == 1
+    final_maks = maskContradictory | maskContrary
+    return (final_maks,)
+
+
+@app.cell
+def _(embedding_tensor, final_maks, label_tensor):
+    training_data = embedding_tensor[final_maks]
+    training_labels = label_tensor[final_maks][:, 1:3]
+    return training_data, training_labels
+
+
+@app.cell
+def _(DataLoader, Dataset, Tensor, training_data, training_labels):
+    class TripletDataset(Dataset):
+        def __init__(self, data: Tensor, labels: Tensor):
+            self.data = data
+            self.labels = labels
+
+        def __len__(self):
+            return len(self.data)
+
+        def __getitem__(self, idx):
+            triplet = self.data[idx]       # shape: (3, 300)
+            label = self.labels[idx]       # shape: (2,)
+            adj, ant, neg = triplet[0], triplet[1], triplet[2]
+            return neg, adj, ant, label
+
+    # Instantiate dataset and dataloader
+    dataset = TripletDataset(training_data, training_labels)
+    dataloader = DataLoader(dataset, batch_size=8, shuffle=True)
+    return (dataloader,)
+
+
+@app.cell
+def _(NN, dataloader, t, triplet_loss):
+    # Training
+    model = NN(num_hidden_features=128)
+    optimizer = t.optim.Adam(model.parameters(), lr=1e-3)
+
+    n_epochs = 50
+    for epoch in range(n_epochs):
+        model.train()
+        total_loss = 0.0
+
+        for _neg, _adj, _ant, _relation in dataloader:
+            optimizer.zero_grad()
+            pred = model(_neg)  # only negated embeddings are transformed
+            loss = triplet_loss(_relation, _adj, _ant, pred)
+            loss.backward()
+            optimizer.step()
+            total_loss += loss.item()
+
+        print(f"Epoch {epoch+1}, Loss: {total_loss / len(dataloader):.4f}")
+    return
+
+
+@app.cell
+def _():
     return
 
 

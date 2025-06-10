@@ -185,7 +185,7 @@ def _(MovieReviewSignature, dspy, output_dir):
     def generate_and_save_review(adjective: str, sentiment: str, file_id: int):
         result = predict(adjective=adjective, sentiment=sentiment)
         review_text = result.review.strip()
-    
+
         folder = "pos" if sentiment == "positive" else "neg"
         dir_path = rev_dir / folder
         file_path = dir_path / f'review_{file_id}.txt'
@@ -209,7 +209,7 @@ def _(adj_csv, mo):
         value=False, 
         on_click=lambda value: True if not value else False, label='dspy run on/off'
     )
-    adj_type = mo.ui.radio(adj_csv['subclass'].unique())
+    adj_type = mo.ui.radio(adj_csv['subclass'].unique(), value='contrary_antonyms')
     text = mo.ui.slider(start=1, stop=10, step=1, value=1, show_value=True, label='Number of loops')
 
     mo.hstack([adj_type, mo.vstack([button, text], align='stretch')], align='center')
@@ -245,6 +245,11 @@ def _(
                     sentiment = row[f"{column}_sentiment"]
                     generate_and_save_review(str(adj), sentiment, file_id)
                     file_id += 1
+    return
+
+
+@app.cell
+def _():
     return
 
 

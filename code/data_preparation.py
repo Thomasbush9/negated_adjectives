@@ -56,7 +56,6 @@ def _(mo):
     - train(post/neg), test(pos/neg)
     - Each review is stored as [id]_[rating].txt => 200_8.txt
     - Tokenize bag of words and .vocab
-
     """
     )
     return
@@ -98,6 +97,7 @@ def _(
     adj_set,
     antonym_freq,
     antonym_set,
+    neg_set,
     negated_form_freq,
     word_tokenize,
 ):
@@ -118,6 +118,8 @@ def _(
                 next_word = tokens[i+1]
                 if next_word in adj_set or next_word in antonym_set:
                     negated_form_freq[f"not_{next_word}"] += 1
+            if word in neg_set:
+                negated_form_freq[word] += 1
     return (analyze_text,)
 
 
@@ -125,7 +127,8 @@ def _(
 def _(df_tokens):
     adj_set = set(df_tokens["adjective1"])
     antonym_set = set(df_tokens["adjective2"])
-    return adj_set, antonym_set
+    neg_set = set(df_tokens['negation_token'])
+    return adj_set, antonym_set, neg_set
 
 
 @app.cell
@@ -142,14 +145,20 @@ def _(adj_freq, antonym_freq, df_tokens, negated_form_freq):
     summary = df_tokens.copy()
     summary["adj_freq"] = summary["adjective1"].str.lower().map(adj_freq)
     summary["antonym_freq"] = summary["adjective2"].str.lower().map(antonym_freq)
-    summary["negated_freq"] = summary["negation_token"].str.lower().map(negated_form_freq).fillna(0).astype(int)
+    summary["negated_freq"] = summary["negation_token"].str.lower().map(negated_form_freq)
     summary = summary.fillna(0).astype({"adj_freq": int, "antonym_freq": int, "negated_freq": int})
     return (summary,)
 
 
 @app.cell
-def _(summary):
-    summary
+def _(mo, summary):
+    selector = mo.ui.radio(summary['subclass'].unique(), label="Select the antonym class that you want to analyze")
+    return (selector,)
+
+
+@app.cell
+def _(mo, selector, summary):
+    mo.vstack([selector, summary[summary['subclass']==selector.value].sort_values(by=['frequency'], ascending=False)])
     return
 
 
@@ -195,6 +204,13 @@ def _(word_tokenize):
 
 
 @app.cell
+def _(OUT_DIR):
+    post_train = OUT_DIR /'train'/ 'pos'
+    len(list(post_train.glob("*.txt")))
+    return
+
+
+@app.cell
 def _(os, pos_set, process_file, review_dir, tqdm):
     OUT_DIR = review_dir / "processed_imdb"
     os.makedirs(review_dir / "processed_imdb",exist_ok=True)
@@ -204,10 +220,14 @@ def _(os, pos_set, process_file, review_dir, tqdm):
             src_folder = review_dir / split / lab
             dst_folder = OUT_DIR / split / lab
             os.makedirs(dst_folder, exist_ok=True)
-            for f in tqdm(src_folder.iterdir(), desc=f"Explring {split}, {lab}"):
-                src_path = src_folder  / f.name
-                dst_path = dst_folder / f.name
-                process_file(src_path, dst_path, pos_set)
+            if len(list(dst_folder.glob("*.txt"))) == 12500:
+                print(f"{dst_folder} already processed during a previous run, skipping...")
+                continue 
+            else:
+                for f in tqdm(src_folder.iterdir(), desc=f"Explring {split}, {lab}"):
+                    src_path = src_folder  / f.name
+                    dst_path = dst_folder / f.name
+                    process_file(src_path, dst_path, pos_set)
     return (OUT_DIR,)
 
 
@@ -226,45 +246,56 @@ def _():
 @app.cell
 def _(OUT_DIR, Path):
     PROCESSED_DIR = OUT_DIR / "train"
+    augmented_dir = Path('/Users/thomasbush/Documents/Vault/CIMEC/LSC/seminar_paper/code/synthetic_data/reviews')
     SAVE_PATH = Path("/Users/thomasbush/Documents/Vault/CIMEC/LSC/seminar_paper/code/models/E_pretrained.model")
-    return PROCESSED_DIR, SAVE_PATH
-
-
-app._unparsable_cell(
-    r"""
-    def load_tokenized_sentences(data_dir):
-        sentences = []k    for label in [\"pos\", \"neg\"]:
-            label_dir = Path(data_dir) / label
-            for fname in tqdm(os.listdir(label_dir)):
-                if fname.endswith(\".txt\"):
-                    fpath = label_dir / fname
-                    with open(fpath, \"r\", encoding=\"utf-8\") as f:
-                        text = f.read()
-                        tokens = text.split()  # already pre-tokenized
-                        if len(tokens) > 0:
-                            sentences.append(tokens)
-        return sentences
-    """,
-    name="_"
-)
+    return PROCESSED_DIR, SAVE_PATH, augmented_dir
 
 
 @app.cell
-def _(PROCESSED_DIR, load_tokenized_sentences):
-    sent = load_tokenized_sentences(PROCESSED_DIR)
+def _(os, tqdm):
+    from typing import List
+    def load_tokenized_sentences(data_dir:List)->List:
+        sentences = []
+        for directory in data_dir:
+            for label in ["pos", "neg"]:
+                label_dir = directory / label
+                for fname in tqdm(os.listdir(label_dir)):
+                    if fname.endswith(".txt"):
+                        fpath = label_dir / fname
+                        with open(fpath, "r", encoding="utf-8") as f:
+                            text = f.read()
+                            tokens = text.split()  # already pre-tokenized
+                            if len(tokens) > 0:
+                                sentences.append(tokens)
+        return sentences
+    return (load_tokenized_sentences,)
+
+
+@app.cell
+def _(PROCESSED_DIR, augmented_dir, load_tokenized_sentences):
+    list_of_dirs = [PROCESSED_DIR, augmented_dir]
+    sent = load_tokenized_sentences(list_of_dirs)
     return (sent,)
 
 
 @app.cell
-def _(Word2Vec, sent):
-    model = Word2Vec(
-        sentences=sent,
-        vector_size=300,
-        window=5,
-        min_count=3,
-        sg=1,       # Skip-gram (better for rare words)
-        workers=4   # Use available CPU cores
-    )
+def _(mo):
+    train_model = mo.ui.button(label="Train model On/Off", value=False)
+    train_model
+    return (train_model,)
+
+
+@app.cell
+def _(Word2Vec, sent, train_model):
+    if train_model.value:
+        model = Word2Vec(
+            sentences=sent,
+            vector_size=300,
+            window=10,
+            min_count=3,
+            sg=1,       # Skip-gram (better for rare words)
+            workers=4   # Use available CPU cores
+        )
     return (model,)
 
 
@@ -278,13 +309,7 @@ def _(Path, SAVE_PATH, model):
 @app.cell
 def _(model):
     #check if we have vecs:
-    "not_like" in model.wv
-    return
-
-
-@app.cell
-def _(mo):
-    mo.md(text='### Visualizaiton of the Embeddings')
+    "not_much" in model.wv
     return
 
 

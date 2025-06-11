@@ -26,7 +26,7 @@ def _():
     import polars as pol
     import matplotlib.pylab as plt
     from mofresh import anywidget
-    return PCA, Path, Word2Vec, alt, load_dotenv, mo, np, os, pd, t, tqdm
+    return PCA, Path, Word2Vec, alt, load_dotenv, mo, np, os, pd, plt, t, tqdm
 
 
 @app.cell
@@ -278,10 +278,10 @@ def _(Tensor):
         sim_ant = F.cosine_similarity(pred, ant, dim=-1)
 
         # Margin-based version
-        l1 = F.relu(sim_ant - sim_adj + margin)  # for 'contrary'
-        l2 = F.relu(sim_adj - sim_ant + margin)  # for 'contradictory'
+        l1 = F.sigmoid(sim_ant - sim_adj + margin)  # for 'contrary'
+        l2 = F.sigmoid(sim_adj - sim_ant + margin)  # for 'contradictory'
 
-        loss = relation[:, 0] * l1 + relation[:, 1] * l2
+        loss = relation[:, 1] * l1 + relation[:, 0] * l2
         return loss.mean()
 
     return DataLoader, Dataset, triplet_loss
@@ -344,17 +344,74 @@ def _(NN, dataloader, t, triplet_loss):
         for _neg, _adj, _ant, _relation in dataloader:
             optimizer.zero_grad()
             pred = model(_neg)  # only negated embeddings are transformed
-            loss = triplet_loss(_relation, _adj, _ant, pred)
+            loss = triplet_loss(_relation, _adj, _ant, pred, margin=0)
             loss.backward()
             optimizer.step()
             total_loss += loss.item()
 
         print(f"Epoch {epoch+1}, Loss: {total_loss / len(dataloader):.4f}")
-    return
+    return (model,)
 
 
 @app.cell
-def _():
+def _(training_data):
+    #plotting
+    adj_t = training_data[:, 0]
+    ant_t = training_data[:, 1]
+    neg_t = training_data[:, 2]
+    return adj_t, ant_t, neg_t
+
+
+@app.cell
+def _(model, neg_t, t):
+    model.eval()
+    with t.no_grad():
+        pred_ = model(neg_t)
+    return (pred_,)
+
+
+@app.cell
+def _(PCA, adj_t, ant_t, neg_t, pred_, t):
+    all_vecs = t.cat([neg_t, pred_, adj_t, ant_t], dim=0).cpu().numpy()
+
+    # stack all for pca 
+    pca_ = PCA(n_components=2)
+    projected = pca_.fit_transform(all_vecs)
+
+    # Split the projected vectors
+    n = len(neg_t)
+    neg_proj = projected[:n]
+    pred_proj = projected[n:2*n]
+    adj_proj = projected[2*n:3*n]
+    ant_proj = projected[3*n:]
+    return adj_proj, ant_proj, n, neg_proj, pred_proj
+
+
+@app.cell
+def _(adj_proj, ant_proj, n, neg_proj, plt, pred_proj):
+    plt.figure(figsize=(6, 6))
+
+    # Original negations
+    plt.scatter(neg_proj[:, 0], neg_proj[:, 1], c='gray', label='negation (original)', alpha=0.5)
+    # Transformed negations
+    plt.scatter(pred_proj[:, 0], pred_proj[:, 1], c='blue', label='negation (transformed)')
+    # Adjectives and antonyms
+    plt.scatter(adj_proj[:, 0], adj_proj[:, 1], c='green', label='adjective')
+    plt.scatter(ant_proj[:, 0], ant_proj[:, 1], c='red', label='antonym')
+
+    # Optional: draw arrows from neg → pred
+    for i in range(n):
+        plt.arrow(neg_proj[i, 0], neg_proj[i, 1],
+                  pred_proj[i, 0] - neg_proj[i, 0],
+                  pred_proj[i, 1] - neg_proj[i, 1],
+                  head_width=0.02, alpha=0.3, color='black')
+
+    plt.legend()
+    plt.title("PCA of Embeddings: Negation Shift Visualization")
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
     return
 
 

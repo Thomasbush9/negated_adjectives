@@ -4,7 +4,7 @@ __generated_with = "0.13.6"
 app = marimo.App(width="columns")
 
 
-@app.cell
+@app.cell(column=0)
 def _():
     import marimo as mo
     import os
@@ -192,7 +192,7 @@ def _(Path, SentenceGeneration, dspy, safe_replace, tqdm):
                     json.dump(row, f, ensure_ascii=False)
                     f.write("\n")
 
-    return (generate_and_save_triplets,)
+    return generate_and_save_triplets, json
 
 
 @app.cell
@@ -211,6 +211,103 @@ def _(
     if on.value:
         loop_counts = compute_balanced_loops(selected_adj, base_loops=number_of_loops.value)
         generate_and_save_triplets(selected_adj=selected_adj, output_root=output_root, loop_counts=loop_counts)
+    return (output_root,)
+
+
+@app.cell
+def _():
+    return
+
+
+@app.cell(column=1)
+def _(mo):
+    mo.md(r"""# Embeddings Generation""")
+    return
+
+
+@app.cell
+def _():
+    from sentence_transformers import SentenceTransformer
+    from typing import Dict, List
+    return Dict, List, SentenceTransformer
+
+
+@app.cell
+def _(Dict, List, json):
+    def load_triplets_json(filepath)->List:
+        with open(filepath, "r", encoding='utf-8') as f:
+            return [json.loads(line) for line in f]
+        
+    def normalize_not_adj(triplet:dict)->Dict:
+        adj = triplet["adjective"]
+        not_adj_sentence = triplet["negated_sentence"].replace(f"not_{adj}", f"not {adj}")
+        return {
+            "adj_sentence": triplet["adj_sentence"],
+            "negated_sentence": not_adj_sentence,
+            "antonym_sentence": triplet["antonym_sentence"],
+            "subclass": triplet["subclass"]
+        }
+    return load_triplets_json, normalize_not_adj
+
+
+@app.cell
+def _(SentenceTransformer, tqdm):
+    def generate_embeddings(triplets:dict, model_name:str="all-MiniLM-L6-v2"):
+        model = SentenceTransformer(model_name)
+
+        sentences = []
+        for triplet in tqdm(triplets, desc="Embedding Generation"):
+            sentences.extend([
+                triplet["adj_sentence"],
+                triplet["negated_sentence"],
+                triplet["antonym_sentence"]
+            ])
+        embeddings = model.encode(sentences, convert_to_tensor=True)
+        n = len(triplets)
+        embeddings = embeddings.view(n, 3, -1)
+        return embeddings
+    return (generate_embeddings,)
+
+
+@app.cell
+def _(output_root):
+    [f.name for f in  output_root.iterdir()]
+    return
+
+
+@app.cell
+def _(Path, load_triplets_json, output_root):
+    file_path_contradictory = Path(output_root / 'contradictory_antonyms'/ 'triplets.jsonl')
+    raw_triplets_contradictory = load_triplets_json(file_path_contradictory)
+    return (raw_triplets_contradictory,)
+
+
+@app.cell
+def _(normalize_not_adj, raw_triplets_contradictory):
+    normalized_triplets_contradictory = [normalize_not_adj(_trip) for _triip in raw_triplets_contradictory]
+    return (normalized_triplets_contradictory,)
+
+
+@app.cell
+def _(generate_embeddings, normalized_triplets_contradictory):
+    embeddings = generate_embeddings(normalized_triplets_contradictory)
+    return (embeddings,)
+
+
+@app.cell
+def _(embeddings):
+    embeddings.shape
+    return
+
+
+@app.cell
+def _():
+    return
+
+
+@app.cell(column=2)
+def _(mo):
+    mo.md(r"""# Variational AutoEncoder Experiment """)
     return
 
 

@@ -19,7 +19,7 @@ def _():
     from mofresh import anywidget, refresh_matplotlib
     from dotenv import load_dotenv
     import einops
-    return DataLoader, F, Path, dspy, load_dotenv, mo, np, os, pd, torch, tqdm
+    return DataLoader, F, Path, dspy, load_dotenv, mo, os, pd, torch, tqdm
 
 
 @app.cell
@@ -569,7 +569,7 @@ def _(
         embeddings[:, 2, :]   # antonym
     ], dim=0)
     args = SentenceVAE_TrainingArgs(
-        dataset=TensorDataset(embeddings_tensor_negation),
+        dataset=TensorDataset(embeddings_all),
         vae=SentenceVAE,
         batch_size=64, 
         epochs=20,
@@ -621,23 +621,58 @@ def _(F, z_adj, z_not, z_pred):
 
 @app.cell
 def _(z_adj, z_not):
-    neg_vectors = z_not - z_adj  # shape: (n, latent_dim)
-    negation_vector = neg_vectors.mean(dim=0, keepdim=True)  # shape: (1, latent_dim)
+    neg_vectors = z_not.mean(dim=0) - z_adj.mean(dim=0)  # shape: (n, latent_dim)
+    # negation_vector = neg_vectors.mean(dim=0, keepdim=True)  # shape: (1, latent_dim)
 
-    return (negation_vector,)
+    return (neg_vectors,)
 
 
 @app.cell
-def _(negation_vector, z_adj):
-    z_pred = z_adj + negation_vector
+def _(neg_vectors):
+    neg_vectors.shape
+    return
+
+
+@app.cell
+def _(F, neg_vectors, z_adj, z_ant, z_not):
+    # Compute predicted negated vectors
+    z_pred = z_adj + neg_vectors  # apply the learned negation vector
+
+    # Cosine similarity
+    sim_pred_not = F.cosine_similarity(z_pred, z_not, dim=1).mean().item()
+    sim_pred_ant = F.cosine_similarity(z_pred, z_ant, dim=1).mean().item()
+
+    print(f"Mean cosine similarity (predicted vs. actual negation): {sim_pred_not:.4f}")
+    print(f"Mean cosine similarity (predicted vs. antonym): {sim_pred_ant:.4f}")
+
     return (z_pred,)
 
 
 @app.cell
-def _(F, z_not, z_pred):
-    cos_sim = F.cosine_similarity(z_pred, z_not, dim=1)
-    print(f"Mean cosine similarity (z_pred vs z_not): {cos_sim.mean().item():.4f}")
-    return (cos_sim,)
+def _(torch, z_adj, z_ant, z_not, z_pred):
+    from sklearn.decomposition import PCA
+    import matplotlib.pyplot as plt
+    all_z = torch.cat([z_adj, z_not, z_ant, z_pred], dim=0).cpu().numpy()
+    labels = (["adj"] * len(z_adj)) + (["not"] * len(z_not)) + (["ant"] * len(z_ant)) + (["pred"] * len(z_pred))
+
+    # Reduce to 2D
+    pca = PCA(n_components=2)
+    z_pca = pca.fit_transform(all_z)
+
+    # Plot
+    plt.figure(figsize=(8, 6))
+    for label in set(labels):
+        idxs = [i for i, l in enumerate(labels) if l == label]
+        plt.scatter(z_pca[idxs, 0], z_pca[idxs, 1], label=label, alpha=0.6)
+
+    plt.legend()
+    plt.title("Latent space PCA projection of adjective, negation, antonym and predicted negation vectors")
+    plt.xlabel("PC1")
+    plt.ylabel("PC2")
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+    return
 
 
 @app.cell
@@ -653,27 +688,6 @@ def _(cos_sim, cos_sim_to_ant):
     delta = cos_sim_to_ant - cos_sim
     print(f"Mean (pred closer to antonym than actual not_adj): {delta.mean().item():.4f}")
 
-    return
-
-
-@app.cell
-def _(np, z_adj, z_ant, z_not):
-    # viz latent space
-    import matplotlib.pylab as plt
-    from sklearn.manifold import TSNE
-
-    all_z = np.vstack([z_adj.to('cpu'), z_not.to('cpu'), z_ant.to('cpu')])
-    labels = (['adj'] * len(z_adj)) + (['not'] * len(z_not)) + (['ant'] * len(z_ant))
-
-    z_proj = TSNE(n_components=2).fit_transform(all_z)
-
-    plt.figure(figsize=(8, 6))
-    for label in set(labels):
-        idx = [i for i, l in enumerate(labels) if l == label]
-        plt.scatter(z_proj[idx, 0], z_proj[idx, 1], label=label, alpha=0.5)
-    plt.legend()
-    plt.title("Latent space projection")
-    plt.show()
     return
 
 

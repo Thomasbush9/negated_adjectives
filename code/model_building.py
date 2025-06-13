@@ -269,6 +269,7 @@ def _(Tensor):
     # define possible training loss:
     from torch.utils.data import Dataset, DataLoader
     import torch.nn.functional as F
+    from torch.nn.functional import relu
 
     def cosine_tensor(a:Tensor, b:Tensor):
         return F.cosine_similarity(a, b, dim=-1)
@@ -278,8 +279,8 @@ def _(Tensor):
         sim_ant = F.cosine_similarity(pred, ant, dim=-1)
 
         # Margin-based version
-        l1 = F.sigmoid(sim_ant - sim_adj + margin)  # for 'contrary'
-        l2 = F.sigmoid(sim_adj - sim_ant + margin)  # for 'contradictory'
+        l1 = F.relu(sim_ant - sim_adj + margin)  # for 'contrary'
+        l2 = F.relu(sim_adj - sim_ant + margin)  # for 'contradictory'
 
         loss = relation[:, 1] * l1 + relation[:, 0] * l2
         return loss.mean()
@@ -336,7 +337,7 @@ def _(NN, dataloader, t, triplet_loss):
     model = NN(num_hidden_features=128)
     optimizer = t.optim.Adam(model.parameters(), lr=1e-3)
 
-    n_epochs = 50
+    n_epochs = 20
     for epoch in range(n_epochs):
         model.train()
         total_loss = 0.0
@@ -412,6 +413,35 @@ def _(adj_proj, ant_proj, n, neg_proj, plt, pred_proj):
     plt.tight_layout()
     plt.show()
 
+    return
+
+
+@app.cell
+def _(adj_t, ant_t, neg_t, pred_, t):
+    cos = t.nn.functional.cosine_similarity
+
+    # Cosine similarity between predicted vector and targets
+    sim_pred_adj = cos(pred_, adj_t)
+    sim_pred_ant = cos(pred_, ant_t)
+    sim_not_adj_adj = cos(neg_t, adj_t)
+    sim_not_adj_ant = cos(neg_t, ant_t)
+
+    # Binary comparison: is prediction closer to adj or ant?
+    pred_closer_to_adj = (sim_pred_adj > sim_pred_ant).sum().item()
+    pred_closer_to_ant = (sim_pred_adj < sim_pred_ant).sum().item()
+
+    # Results summary
+    print(f"Mean sim(pred, adj): {sim_pred_adj.mean().item():.4f}")
+    print(f"Mean sim(pred, ant): {sim_pred_ant.mean().item():.4f}")
+    print(f"Mean sim(not, adj): {sim_not_adj_adj.mean().item():.4f}")
+    print(f"Mean sim(not, ant): {sim_not_adj_ant.mean().item():.4f}")
+    print(f"Pred closer to adj: {pred_closer_to_adj}")
+    print(f"Pred closer to ant: {pred_closer_to_ant}")
+    return
+
+
+@app.cell
+def _():
     return
 
 

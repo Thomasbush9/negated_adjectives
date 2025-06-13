@@ -22,7 +22,7 @@ def _():
     import nltk
     from sklearn.decomposition import PCA
     nltk.download('punkt_tab')
-    return Counter, Path, load_dotenv, mo, os, pd, tqdm, word_tokenize
+    return Counter, Path, alt, load_dotenv, mo, os, pd, tqdm, word_tokenize
 
 
 @app.cell
@@ -114,10 +114,8 @@ def _(
                 adj_freq[word] += 1
             if word in antonym_set:
                 antonym_freq[word] += 1
-            if word == "not" and i + 1 < len(tokens):
-                next_word = tokens[i+1]
-                if next_word in adj_set or next_word in antonym_set:
-                    negated_form_freq[f"not_{next_word}"] += 1
+            if {word} in neg_set:
+                negated_form_freq[f"not_{word}"] += 1
             if word in neg_set:
                 negated_form_freq[word] += 1
     return (analyze_text,)
@@ -159,6 +157,55 @@ def _(mo, summary):
 @app.cell
 def _(mo, selector, summary):
     mo.vstack([selector, summary[summary['subclass']==selector.value].sort_values(by=['frequency'], ascending=False)])
+
+    return
+
+
+@app.cell
+def _(alt, mo, selector, summary):
+    # Step 1: Melt the DataFrame
+    long_df = (
+        summary[summary['subclass'] == selector.value]
+        .melt(id_vars=['adjective1'], value_vars=['adj_freq', 'antonym_freq', 'negated_freq'],
+              var_name='Type', value_name='Frequency')
+    )
+
+    # Optional: Map nicer labels
+    long_df['Type'] = long_df['Type'].map({
+        'adj_freq': 'Adjective',
+        'antonym_freq': 'Antonym',
+        'negated_freq': 'Negation'
+    })
+
+    # Step 2: Aggregate by adjective and type
+    # (necessary if multiple entries per adjective)
+    agg_df = long_df.groupby(['adjective1', 'Type'], as_index=False)['Frequency'].sum()
+
+    # Step 3: Compute total for sorting
+    total_freq = agg_df.groupby('adjective1')['Frequency'].sum().reset_index()
+    top_adjs = total_freq.sort_values('Frequency', ascending=False).head(30)['adjective1']
+
+    # Filter to top N adjectives
+    plot_df = agg_df[agg_df['adjective1'].isin(top_adjs)]
+
+    # Step 4: Altair stacked bar chart
+    chart = mo.ui.altair_chart(
+        alt.Chart(plot_df).mark_bar().encode(
+            x=alt.X('adjective1:N', sort='-y', title='Adjective'),
+            y=alt.Y('Frequency:Q', title='Total Frequency'),
+            color=alt.Color('Type:N', title='Frequency Type'),
+            tooltip=['adjective1', 'Type', 'Frequency']
+        ).properties(
+            width=750,
+            height=450,
+            title=f"Adjective Frequency {selector.value} by Type (Stacked)"
+        ).configure_axis(
+            labelAngle=-45
+        )
+    )
+
+    chart
+
     return
 
 
@@ -280,7 +327,7 @@ def _(PROCESSED_DIR, augmented_dir, load_tokenized_sentences):
 
 @app.cell
 def _(mo):
-    train_model = mo.ui.button(label="Train model On/Off", value=False)
+    train_model = mo.ui.button(label="Train model On/Off", value=False, on_click=lambda value: True if not value else False)
     train_model
     return (train_model,)
 

@@ -156,7 +156,13 @@ def _(adj_csv, analyzer, label_from_score):
 
 @app.cell
 def _(adj_csv):
-    adj_csv[adj_csv["subclass"] == 'contrary_antonyms']
+    adj_csv[adj_csv["subclass"] == 'contradictory_antonyms']
+    return
+
+
+@app.cell
+def _(adj_csv):
+    adj_csv
     return
 
 
@@ -307,6 +313,12 @@ def _(load_reviews_from_folder, real_data_path, synthetic_data_path):
 
 
 @app.cell
+def _(synthetic_df):
+    synthetic_df.head()
+    return
+
+
+@app.cell
 def _():
     # show some examples:
     def show_examples(df, label_col='label', n=3):
@@ -366,6 +378,12 @@ def _(TfidfVectorizer, np, real_df, shuffle):
 
 
 @app.cell
+def _(X_train):
+    X_train.shape
+    return
+
+
+@app.cell
 def _(LogisticRegression, X_train, y_train):
     clf = LogisticRegression(max_iter=1000)
     clf.fit(X_train, y_train)
@@ -378,6 +396,12 @@ def _(np, synthetic_df, vectorizer):
     y_test = np.array(synthetic_df["label"].values)
     y_test = np.where(y_test == 'pos', 1, 0)
     return X_test, y_test
+
+
+@app.cell
+def _(X_test):
+    X_test.shape
+    return
 
 
 @app.cell
